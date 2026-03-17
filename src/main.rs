@@ -25,14 +25,13 @@
         }
         
         fn search<'a>(query: &str, content: &'a str) -> Vec<&'a str>{
-            let mut results = Vec::new();
             
-            for line in content.lines(){
-                if line.contains(query){
-                    results.push(line);
-                }
-            }
-            results
+            content
+                .lines()
+                .filter(|line| line.contains(query))
+                .collect()
+            
+            
         }
 
         
@@ -47,12 +46,10 @@
 
         fn main() {
             let arguments: Vec<String> = env::args().collect();
-
             let config = Config::build(&arguments).unwrap_or_else(|err| {
                 eprintln!("Error: {}", err);
                 process::exit(1);
             });
-
             if let Err(e) = run(config){
                 eprintln!("Application error: {}", e);
                 process::exit(1);
