@@ -2,6 +2,7 @@
         use std::error::Error;
         use std::fs;
         use std::process;
+        
  
         struct Config{
             word: String,
@@ -10,18 +11,24 @@
         }
 
         impl Config{
-            fn build(args: &[String]) -> Result<Config, &'static str>{
-                if args.len() < 3 {
-                    return Err("Usage: Cargo run <word> <file>.")
-                }
+            fn build(mut args: impl Iterator<Item = String>) -> Result<Config, &'static str>{
+                args.next(); // path
 
-                let word = args[1].clone() ;
-                let file = args[2].clone() ;
+                let word = match args.next(){
+                    Some(arg) => arg,
+                    None => return Err("erro da palavra"),
+                };
+
+                let file = match args.next(){
+                    Some(arg) => arg,
+                    None => return Err("erro do ficheiro"),
+                };
+
                 let ignore_case = env::var("IGNORE_CASE").is_ok();
 
                 Ok(Config { 
                     word,
-                    file, 
+                    file,   
                     ignore_case,
                 })
             }
@@ -33,7 +40,7 @@
 
             content
                 .lines()
-                .filter(| line: &&str| line.to_lowercase().contains(&query))
+                .filter(| line | line.to_lowercase().contains(&query))
                 .collect()
         }
 
@@ -63,11 +70,12 @@
         }
 
         fn main() {
-            let arguments: Vec<String> = env::args().collect();
-            let config = Config::build(&arguments).unwrap_or_else(|err| {
-                eprintln!("Error: {}", err);
+            let config = Config::build(env::args()).unwrap_or_else(|err|{
+                eprintln!("Teste: {}", err);
                 process::exit(1);
             });
+                
+            
             if let Err(e) = run(config){
                 eprintln!("Application error: {}", e);
                 process::exit(1);
