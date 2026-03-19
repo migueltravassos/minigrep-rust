@@ -2,7 +2,6 @@
         use std::error::Error;
         use std::fs;
         use std::process;
-        
  
         struct Config{
             word: String,
@@ -16,12 +15,12 @@
 
                 let word = match args.next(){
                     Some(arg) => arg,
-                    None => return Err("erro da palavra"),
+                    None => return Err("Please enter a word!"),
                 };
 
                 let file = match args.next(){
                     Some(arg) => arg,
-                    None => return Err("erro do ficheiro"),
+                    None => return Err("Please enter a file!"),
                 };
 
                 let ignore_case = env::var("IGNORE_CASE").is_ok();
@@ -71,7 +70,7 @@
 
         fn main() {
             let config = Config::build(env::args()).unwrap_or_else(|err|{
-                eprintln!("Teste: {}", err);
+                eprintln!("Error: {}", err);
                 process::exit(1);
             });
                 
