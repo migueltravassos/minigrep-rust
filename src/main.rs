@@ -6,6 +6,7 @@
         struct Config{
             word: String,
             file: String,
+            ignore_case: bool,
         }
 
         impl Config{
@@ -16,17 +17,27 @@
 
                 let word = args[1].clone() ;
                 let file = args[2].clone() ;
+                let ignore_case = env::var("IGNORE_CASE").is_ok();
 
                 Ok(Config { 
                     word,
                     file, 
+                    ignore_case,
                 })
             }
         }
 
 
+        fn search_case_insensitive<'a>(query: &str, content: &'a str) -> Vec<&'a str>{
+            let query = query.to_lowercase();
 
+            content
+                .lines()
+                .filter(| line: &&str| line.to_lowercase().contains(&query))
+                .collect()
+        }
 
+        
         
         fn search<'a>(query: &str, content: &'a str) -> Vec<&'a str>{   
             content
@@ -39,9 +50,15 @@
         fn run(config: Config) -> Result<(), Box<dyn Error>>{
             let content: String = fs::read_to_string(&config.file)?;
 
-            for line in search(&config.word, &content) {
+            let results = if config.ignore_case{
+                search_case_insensitive(&config.word, &content)
+            }else{
+                search(&config.word, &content)
+            };
+
+            for line in results{
                     println!("{}", line);
-            }
+            } 
             Ok(())
         }
 
