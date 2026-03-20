@@ -1,6 +1,7 @@
 use std::env;
 use std::error::Error;
-use std::fs;
+use std::io::{BufRead, BufReader};
+use std::fs::File;
 
 pub struct Config {
     word: String,
@@ -32,35 +33,29 @@ impl Config {
     }
 }
 
-fn search_case_insensitive<'a>(query: &str, content: &'a str) -> Vec<(usize, &'a str)> {
-    let query = query.to_lowercase();
-
-    content
-        .lines()
-        .enumerate()
-        .filter(|(_, line)| line.to_lowercase().contains(&query))
-        .collect()
-}
-
-fn search<'a>(query: &str, content: &'a str) -> Vec<(usize,&'a str)> {
-    content
-        .lines()
-        .enumerate()
-        .filter(|(_, line)| line.contains(query))
-        .collect()
-}
-
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let content: String = fs::read_to_string(&config.file)?;
+    let file = File::open(&config.file)?;
+    let reader = BufReader::new(file);
 
-    let results = if config.ignore_case {
-        search_case_insensitive(&config.word, &content)
+    let query = if config.ignore_case{
+        config.word.to_lowercase()
     } else {
-        search(&config.word, &content)
+        config.word.clone()
     };
+    for(index, line_result) in reader.lines().enumerate(){
+        let line = line_result?;
 
-    for (index,line) in results {
-        println!("Line {}: {} ", index + 1, line);
+
+        let line_to_test = if config.ignore_case{
+            line.to_lowercase()
+        }else {
+            line.clone()
+        };
+
+        if line_to_test.contains(&query){
+            println!("Line {}: {}", index+1, line);
+        }
+        
     }
     Ok(())
 }
